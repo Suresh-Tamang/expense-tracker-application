@@ -31,7 +31,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -57,9 +57,36 @@ import com.example.ui.viewmodel.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+object ThemeConfig {
+    var isDarkMode: Boolean = true
+}
+
+typealias Color = ComposeColor
+
+// Dynamic theme-aware factory for hardcoded color literals
+fun Color(colorVal: Long): ComposeColor {
+    val isDark = ThemeConfig.isDarkMode
+    return when (colorVal) {
+        0xFF1C1B1FL -> if (isDark) ComposeColor(0xFF1C1B1FL) else ComposeColor(0xFFFFFFFFL) // Pure white background
+        0xFF2B2930L -> if (isDark) ComposeColor(0xFF2B2930L) else ComposeColor(0xFFFFFFFFL) // Pure white surfaces
+        0xFF49454FL -> if (isDark) ComposeColor(0xFF49454FL) else ComposeColor(0xFFE0E0E0L) // Subtle light gray border
+        0xFFE6E1E5L -> if (isDark) ComposeColor(0xFFE6E1E5L) else ComposeColor(0xFF000000L) // Text is pure black
+        0xFFCAC4D0L -> if (isDark) ComposeColor(0xFFCAC4D0L) else ComposeColor(0xFF212121L) // Sub-text is black/charcoal
+        0xFF938F99L -> if (isDark) ComposeColor(0xFF938F99L) else ComposeColor(0xFF424242L) // Muted text is dark gray
+        0xFFD0BCFFL -> if (isDark) ComposeColor(0xFFD0BCFFL) else ComposeColor(0xFF000000L) // Highlights / major text are black
+        0xFF381E72L -> if (isDark) ComposeColor(0xFF381E72L) else ComposeColor(0xFFFFFFFFL) // High contrast on-primary white
+        0xFF332D41L -> if (isDark) ComposeColor(0xFF332D41L) else ComposeColor(0xFFF5F5F5L) // Light containers
+        0xFF4F378BL -> if (isDark) ComposeColor(0xFF4F378BL) else ComposeColor(0xFFEEEEEEL) // Light container backgrounds
+        0xFFEADDFFL -> if (isDark) ComposeColor(0xFFEADDFFL) else ComposeColor(0xFF000000L) // Container content is black
+        else -> ComposeColor(colorVal)
+    }
+}
+
 @Composable
 fun ExpenseTrackerApp(viewModel: ExpenseViewModel, activity: FragmentActivity) {
     val context = LocalContext.current
+    val isDarkTheme by viewModel.isDarkMode.collectAsState()
+    ThemeConfig.isDarkMode = isDarkTheme
     var isUnlocked by remember { mutableStateFlowOf(false) }
 
     // Biometric authentication state and preferences load
@@ -189,6 +216,9 @@ fun SecurityLockScreen(
 @Composable
 fun MainDashboard(viewModel: ExpenseViewModel) {
     val context = LocalContext.current
+    val isDarkTheme by viewModel.isDarkMode.collectAsState()
+    ThemeConfig.isDarkMode = isDarkTheme
+
     var selectedTab by remember { mutableStateFlowOf(0) }
     val currentMonth by viewModel.currentMonth.collectAsState()
     val monthlyExpenses by viewModel.monthlyExpenses.collectAsState()
@@ -196,6 +226,7 @@ fun MainDashboard(viewModel: ExpenseViewModel) {
 
     LaunchedEffect(Unit) {
         viewModel.loadCurrency(context)
+        viewModel.loadTheme(context)
     }
 
     Scaffold(
@@ -383,19 +414,43 @@ fun DashboardTab(
                         }
                     }
                     
-                    // Shield Quick Status Badge
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(Color(0xFF332D41), CircleShape)
-                            .clip(CircleShape)
-                            .clickable {
-                                Toast.makeText(context, "Biometric data encryption is active.", Toast.LENGTH_SHORT).show()
-                            }
-                            .background(Color(0xFF332D41)),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("🛡️", fontSize = 20.sp)
+                        // Quick Theme Toggle Button
+                        val isDarkTheme by viewModel.isDarkMode.collectAsState()
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .background(Color(0xFF332D41), CircleShape)
+                                .clip(CircleShape)
+                                .clickable {
+                                    viewModel.updateTheme(context, !isDarkTheme)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isDarkTheme) Icons.Default.Brightness4 else Icons.Default.Brightness7,
+                                contentDescription = "Toggle Theme",
+                                tint = Color(0xFFD0BCFF),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        // Shield Quick Status Badge
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .background(Color(0xFF332D41), CircleShape)
+                                .clip(CircleShape)
+                                .clickable {
+                                    Toast.makeText(context, "Biometric data encryption is active.", Toast.LENGTH_SHORT).show()
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🛡️", fontSize = 20.sp)
+                        }
                     }
                 }
             }
@@ -1284,6 +1339,61 @@ fun ManageTab(
                     Toast.makeText(context, "Currency changed to ${currency.code}", Toast.LENGTH_SHORT).show()
                 }
             )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Theme Toggle Card (Light / Dark mode selection)
+        val isDarkTheme by viewModel.isDarkMode.collectAsState()
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { viewModel.updateTheme(context, !isDarkTheme) },
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2930)),
+            shape = RoundedCornerShape(24.dp),
+            border = BorderStroke(1.dp, Color(0xFF49454F))
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (isDarkTheme) Icons.Default.Brightness4 else Icons.Default.Brightness7,
+                        contentDescription = null,
+                        tint = Color(0xFFD0BCFF),
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            "Theme Mode",
+                            fontSize = 12.sp,
+                            color = Color(0xFFCAC4D0)
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = if (isDarkTheme) "Sleek Dark Theme" else "Polished Light Theme",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFD0BCFF)
+                        )
+                    }
+                }
+                Switch(
+                    checked = isDarkTheme,
+                    onCheckedChange = { viewModel.updateTheme(context, it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF381E72),
+                        checkedTrackColor = Color(0xFFD0BCFF),
+                        uncheckedThumbColor = Color(0xFF49454F),
+                        uncheckedTrackColor = Color(0xFFCAC4D0)
+                    )
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))

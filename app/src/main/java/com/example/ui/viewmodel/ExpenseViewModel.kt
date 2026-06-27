@@ -39,6 +39,10 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
     private val _selectedCurrency = MutableStateFlow(SUPPORTED_CURRENCIES[0])
     val selectedCurrency: StateFlow<CurrencyInfo> = _selectedCurrency.asStateFlow()
 
+    // Persistent Theme Settings (Dark Mode vs Light Mode)
+    private val _isDarkMode = MutableStateFlow(true)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
     // All expenses decrypted from local Room DB
     val allExpenses: StateFlow<List<Expense>> = repository.getAllExpensesFlow()
         .stateIn(
@@ -106,6 +110,17 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("currency_code", currencyCode).apply()
         _selectedCurrency.value = SUPPORTED_CURRENCIES.find { it.code == currencyCode } ?: SUPPORTED_CURRENCIES[0]
+     }
+
+    fun loadTheme(context: Context) {
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        _isDarkMode.value = prefs.getBoolean("is_dark_mode", true)
+    }
+
+    fun updateTheme(context: Context, isDark: Boolean) {
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("is_dark_mode", isDark).apply()
+        _isDarkMode.value = isDark
     }
 
     fun selectMonth(monthKey: String) {

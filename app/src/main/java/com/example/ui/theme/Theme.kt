@@ -28,18 +28,18 @@ private val DarkColorScheme =
 
 private val LightColorScheme =
   lightColorScheme(
-    primary = SophisticatedPrimary,
-    onPrimary = SophisticatedOnPrimary,
-    primaryContainer = SophisticatedPrimaryContainer,
-    onPrimaryContainer = SophisticatedOnPrimaryContainer,
-    secondary = SophisticatedSecondary,
-    secondaryContainer = SophisticatedSecondaryContainer,
-    background = SophisticatedBackground,
-    surface = SophisticatedSurface,
-    onBackground = SophisticatedText,
-    onSurface = SophisticatedText,
-    onSurfaceVariant = SophisticatedSubText,
-    outline = SophisticatedBorder
+    primary = androidx.compose.ui.graphics.Color(0xFF6750A4),
+    onPrimary = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    primaryContainer = androidx.compose.ui.graphics.Color(0xFFEADDFF),
+    onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF21005D),
+    secondary = androidx.compose.ui.graphics.Color(0xFF625B71),
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFFE8DEF8),
+    background = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    surface = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    onBackground = androidx.compose.ui.graphics.Color(0xFF1C1B1F),
+    onSurface = androidx.compose.ui.graphics.Color(0xFF1C1B1F),
+    onSurfaceVariant = androidx.compose.ui.graphics.Color(0xFF49454F),
+    outline = androidx.compose.ui.graphics.Color(0xFF79747E)
   )
 
 @Composable

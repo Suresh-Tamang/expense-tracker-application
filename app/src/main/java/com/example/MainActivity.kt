@@ -3,6 +3,8 @@ package com.example
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.data.AppDatabase
@@ -25,8 +27,12 @@ class MainActivity : FragmentActivity() {
     val factory = ExpenseViewModelFactory(repository)
     val viewModel = ViewModelProvider(this, factory)[ExpenseViewModel::class.java]
 
+    // Load theme preference on startup
+    viewModel.loadTheme(applicationContext)
+
     setContent {
-      MyApplicationTheme(darkTheme = true) { // Force sleek dark mode as default for elegant finance UI
+      val isDark by viewModel.isDarkMode.collectAsState()
+      MyApplicationTheme(darkTheme = isDark) {
         ExpenseTrackerApp(viewModel = viewModel, activity = this)
       }
     }
