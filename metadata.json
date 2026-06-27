@@ -1,0 +1,6 @@
+{
+  "name": "Expense Tracker",
+  "description": "Secure offline-first expense tracker with biometric lock, data visualization, encrypted local storage, PDF reports, and budget alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
